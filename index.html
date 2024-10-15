@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link href="https://fonts.googleapis.com/css2?family=Russo+One&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Resistance App</title>
+    <style>
+        @keyframes swipe-up {
+            0% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-50px);
+                opacity: 0.8;
+            }
+        }
+
+        body {
+            font-family: 'Russo One', sans-serif;
+            text-align: center;
+            margin: 0;
+            background: linear-gradient(to bottom, #333333, #000000);
+            color: #fff;
+        }
+
+        .header {
+            background: #8B0000;
+            color: #fff;
+            font-size: 24px;
+            padding: 10px;
+            border-bottom: 3px solid #FF0000;
+            text-transform: uppercase;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.5);
+        }
+
+        .content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: calc(100vh - 60px);
+            margin-top: 60px;
+        }
+
+        .game-button, .small-button {
+            font-size: 20px;
+            padding: 15px 30px;
+            margin: 20px;
+            border: 2px solid #FF0000;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-family: 'Russo One', sans-serif;
+            background-color: #333333;
+            color: #fff;
+            transition: transform 0.1s ease-in-out, background-color 0.1s ease-in-out;
+        }
+
+        .game-button:active, .small-button:active, .player-button:active {
+            transform: scale(0.95);
+            background-color: #B22222;
+        }
+
+        .small-button {
+            background-color: #555;
+            color: #fff;
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+
+        .player-count-wrapper {
+            display: flex;
+            align-items: center;
+            margin: 20px;
+        }
+
+        .player-button {
+            font-size: 24px;
+            padding: 10px;
+            margin: 0 10px;
+            border: 2px solid #FF0000;
+            background-color: #8B0000;
+            color: #fff;
+            cursor: pointer;
+            font-family: 'Russo One', sans-serif;
+            transition: transform 0.1s ease-in-out, background-color 0.1s ease-in-out;
+        }
+
+        #player-count {
+            font-size: 24px;
+            width: 40px;
+            display: inline-block;
+        }
+
+        .vote-result {
+            font-size: 24px;
+            padding: 20px;
+            margin-bottom: 20px;
+            color: #fff;
+            border: 2px solid #FF0000;
+            box-shadow: 0 0 15px #FF0000;
+        }
+
+        .vote-info {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .swipe-up {
+            animation: swipe-up 0.5s ease-in-out, fade-out 0.5s ease-in-out;
+        }
+
+        .vote-button {
+            border: 2px solid #686868;
+            width: 150px;
+            color: #d9d9d9;
+            font-size: 20px;
+            padding: 15px;
+            margin: 10px;
+            text-transform: uppercase;
+            font-family: 'Russo One', sans-serif;
+            cursor: pointer;
+            transition: transform 0.1s ease-in-out, background-color 0.1s ease-in-out;
+        }
+
+        .vote-button:active {
+            transform: scale(0.95);
+            background-color: #B22222;
+        }
+
+        @keyframes fade-out {
+            0% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0.5;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="header">Сопротивление</div>
+
+<div class="content" id="main-menu">
+    <button class="game-button" onclick="goToPlayerSelection()">Новая игра</button>
+    <button class="game-button" onclick="goToGameHistory()">История игр</button>
+</div>
+
+<div class="content" id="player-selection" style="display: none;">
+    <h2>Количество игроков</h2>
+    <div class="player-count-wrapper">
+        <button class="player-button" onclick="decreasePlayerCount()">-</button>
+        <span id="player-count">5</span>
+        <button class="player-button" onclick="increasePlayerCount()">+</button>
+    </div>
+    <button class="game-button" onclick="createGame()">Создать игру</button>
+    <button class="small-button" onclick="goBackToMainMenu()">Назад</button>
+</div>
+
+<div class="content" id="game-screen" style="display: none;">
+    <h2>Игра с <span id="final-player-count"></span> игроками</h2>
+    <button class="game-button" onclick="goToTeamVote()">Голосование за команду</button>
+    <button class="game-button" onclick="goToMissionVote3()">Голосовать за миссию 3</button>
+    <button class="game-button" onclick="goToVoteHistory()">История голосований</button>
+    <button class="game-button" onclick="endGame()">Завершить игру</button>
+</div>
+
+
+<div class="content" id="vote-screen" style="display: none;">
+    <h2>Голосование за команду</h2>
+    <div id="vote-count" class="vote-info">1 из <span id="total-players"></span></div>
+
+    <br>
+    <div style="display: flex; justify-content: center; gap: 20px;">
+        <button class="vote-button" style="background-color: green; width: 150px;" onclick="voteYes()">За</button>
+        <button class="vote-button" style="background-color: red; width: 150px;" onclick="voteNo()">Против</button>
+    </div>
+</div>
+
+<div class="content" id="mission-3-vote-screen" style="display: none;">
+    <h2>Голосование за миссию 3</h2>
+    <div id="mission-3-vote-count" class="vote-info">1 из <span id="mission-3-total-players"></span></div>
+    <br>
+    <div style="display: flex; justify-content: center; gap: 20px;">
+        <button class="vote-button" style="background-color: green; width: 150px;" onclick="voteYesMission3()">За</button>
+        <button class="vote-button" style="background-color: red; width: 150px;" onclick="voteNoMission3()">Против</button>
+    </div>
+</div>
+
+<div class="content" id="mission-3-vote-result-screen" style="display: none;">
+    <h2>Результаты голосования за миссию 3</h2>
+    <div id="mission-3-vote-result" class="vote-result"></div>
+    <button class="game-button" onclick="endMission3Vote()">Завершить голосование</button>
+</div>
+
+<div class="content" id="vote-result-screen" style="display: none;">
+    <h2>Результаты голосования за команду</h2>
+    <div id="vote-result" class="vote-result"></div>
+    <button class="game-button" onclick="endVote()">Завершить голосование</button>
+</div>
+
+<div class="content" id="vote-history" style="display: none;">
+    <h2>История голосований</h2>
+    <table border="1" cellpadding="10">
+        <thead>
+        <tr>
+            <th>Номер</th>
+            <th>Название</th>
+            <th>Результат</th>
+            <th>Количество За</th>
+        </tr>
+        </thead>
+        <tbody id="vote-history-table-body">
+        <!-- История голосований будет загружаться сюда -->
+        </tbody>
+    </table>
+    <button class="small-button" onclick="goBackToGameScreen()">Назад</button>
+</div>
+
+<script>
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./service-worker.js').then((registration) => {
+            console.log('Service Worker registered with scope:', registration.scope);
+        }).catch((error) => {
+            console.error('Service Worker registration failed:', error);
+        });
+    }
+
+    let playerCount = 5;
+    let gameIdCounter = 1;
+    let gameHistory = [];
+    let voteYesCount = 0;
+    let voteNoCount = 0;
+    let currentVote = 1;
+    let gameVoteCount = 0;
+    let mission3PlayerCount = 3;
+
+
+    function goToPlayerSelection() {
+        document.getElementById('main-menu').style.display = 'none';
+        document.getElementById('player-selection').style.display = 'flex';
+    }
+
+    function goBackToMainMenu() {
+        document.getElementById('player-selection').style.display = 'none';
+        document.getElementById('main-menu').style.display = 'flex';
+    }
+
+    function increasePlayerCount() {
+        playerCount++;
+        document.getElementById('player-count').textContent = playerCount;
+    }
+
+    function decreasePlayerCount() {
+        if (playerCount > 5) {
+            playerCount--;
+            document.getElementById('player-count').textContent = playerCount;
+        }
+    }
+
+    function createGame() {
+        const startTime = new Date().toISOString();
+        const newGame = {
+            id: gameIdCounter++,
+            startTime,
+            playerCount,
+            endTime: null
+        };
+        if (!gameHistory.some(game => game.id === newGame.id)) {
+            gameHistory.push(newGame);
+        }
+        navigator.serviceWorker.controller.postMessage({
+            type: 'SAVE_GAME_STATE',
+            game: newGame
+        });
+        document.getElementById('player-selection').style.display = 'none';
+        document.getElementById('game-screen').style.display = 'flex';
+        document.getElementById('final-player-count').textContent = playerCount;
+    }
+
+    function endGame() {
+        const endTime = new Date().toISOString();
+        gameHistory[gameHistory.length - 1].endTime = endTime;
+        document.getElementById('game-screen').style.display = 'none';
+        document.getElementById('main-menu').style.display = 'flex';
+    }
+
+    function goToGameHistory() {
+        document.getElementById('main-menu').style.display = 'none';
+        document.getElementById('game-history').style.display = 'flex';
+        loadGameHistory();
+    }
+
+    function goToTeamVote() {
+        document.getElementById('game-screen').style.display = 'none';
+        document.getElementById('vote-screen').style.display = 'flex';
+        currentVote = 1;
+        voteYesCount = 0;
+        voteNoCount = 0;
+        const totalPlayersElement = document.getElementById('total-players');
+        if (totalPlayersElement) {
+            totalPlayersElement.textContent = playerCount;
+        }
+        const voteCountElement = document.getElementById('vote-count');
+        if (voteCountElement) {
+            voteCountElement.textContent = `Голосует игрок # ${currentVote} из ${playerCount}`;
+        }
+    }
+
+    function goToMissionVote3() {
+        document.getElementById('game-screen').style.display = 'none';
+        document.getElementById('mission-3-vote-screen').style.display = 'flex';
+        currentVote = 1;
+        voteYesCount = 0;
+        voteNoCount = 0;
+        const totalPlayersElement = document.getElementById('mission-3-total-players');
+        if (totalPlayersElement) {
+            totalPlayersElement.textContent = mission3PlayerCount;
+        }
+        const voteCountElement = document.getElementById('mission-3-vote-count');
+        if (voteCountElement) {
+            voteCountElement.textContent = `Голосует игрок # ${currentVote} из ${mission3PlayerCount}`;
+        }
+    }
+
+
+    function voteYes() {
+        const voteScreen = document.getElementById('vote-screen');
+        voteScreen.classList.add('swipe-up');
+        setTimeout(() => {
+            voteScreen.classList.remove('swipe-up');
+            voteYesCount++;
+            updateVoteCount();
+        }, 500);
+        void voteScreen.offsetWidth;
+    }
+
+    function voteNo() {
+        const voteScreen = document.getElementById('vote-screen');
+        voteScreen.classList.add('swipe-up');
+        setTimeout(() => {
+            voteScreen.classList.remove('swipe-up');
+            voteNoCount++;
+            updateVoteCount();
+        }, 500);
+        void voteScreen.offsetWidth;
+    }
+
+    function updateVoteCount() {
+        currentVote++;
+        if (currentVote > playerCount) {
+            showVoteResult();
+        } else {
+            document.getElementById('vote-count').textContent = `Голосует игрок # ${currentVote} из ${playerCount}`;
+        }
+    }
+
+    function showVoteResult() {
+        document.getElementById('vote-screen').style.display = 'none';
+        document.getElementById('vote-result-screen').style.display = 'flex';
+        const resultElement = document.getElementById('vote-result');
+        if (voteYesCount > playerCount / 2) {
+            resultElement.textContent = `${voteYesCount} (За) / ${playerCount}`;
+            resultElement.style.backgroundColor = 'green';
+        } else if (voteNoCount > playerCount / 2) {
+            resultElement.textContent = `${voteYesCount} (За) / ${playerCount}`;
+            resultElement.style.backgroundColor = 'red';
+        } else {
+            resultElement.textContent = `${voteYesCount} (За) / ${playerCount}`;
+            resultElement.style.backgroundColor = 'gray';
+        }
+    }
+
+    function endVote() {
+        currentVote = 1;
+        const voteResult = {
+            id: ++gameVoteCount,
+            name: 'Команда',
+            result: voteYesCount > playerCount / 2 ? 'За' : voteNoCount > playerCount / 2 ? 'Против' : 'Равенство',
+            counts: voteYesCount + '/' + playerCount
+        };
+        if (!gameHistory[gameHistory.length - 1].votes) {
+            gameHistory[gameHistory.length - 1].votes = [];
+        }
+        gameHistory[gameHistory.length - 1].votes.push(voteResult);
+        navigator.serviceWorker.controller.postMessage({
+            type: 'SAVE_VOTE_RESULT',
+            vote: voteResult
+        });
+        document.getElementById('vote-result-screen').style.display = 'none';
+        document.getElementById('game-screen').style.display = 'flex';
+    }
+
+
+    function goToVoteHistory() {
+        document.getElementById('game-screen').style.display = 'none';
+        document.getElementById('vote-history').style.display = 'flex';
+        loadVoteHistory();
+    }
+
+    function loadVoteHistory() {
+        const tableBody = document.getElementById('vote-history-table-body');
+        tableBody.innerHTML = '';
+        const currentGame = gameHistory[gameHistory.length - 1];
+        if (currentGame && currentGame.votes) {
+            currentGame.votes.slice().reverse().forEach((vote, voteIndex) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>${vote.id}</td><td>${vote.name}</td><td>${vote.result}</td><td>${vote.counts}</td>`;
+                const resultCell = row.children[2];
+                if (vote.result === 'За' || vote.result === 'Успех') {
+                    resultCell.style.backgroundColor = 'green';
+                } else if (vote.result === 'Против' || vote.result === 'Провал') {
+                    resultCell.style.backgroundColor = 'red';
+                } else if (vote.result === 'Равенство') {
+                    resultCell.style.backgroundColor = 'gray';
+                }
+                tableBody.appendChild(row);
+            });
+        }
+    }
+
+    function goBackToGameScreen() {
+        document.getElementById('vote-history').style.display = 'none';
+        document.getElementById('game-screen').style.display = 'flex';
+    }
+
+    function voteYesMission3() {
+        const voteScreen = document.getElementById('mission-3-vote-screen');
+        voteScreen.classList.add('swipe-up');
+        setTimeout(() => {
+            voteScreen.classList.remove('swipe-up');
+            voteYesCount++;
+            updateMission3VoteCount();
+        }, 500);
+        void voteScreen.offsetWidth;
+    }
+
+    function voteNoMission3() {
+        const voteScreen = document.getElementById('mission-3-vote-screen');
+        voteScreen.classList.add('swipe-up');
+        setTimeout(() => {
+            voteScreen.classList.remove('swipe-up');
+            voteNoCount++;
+            updateMission3VoteCount();
+        }, 500);
+        void voteScreen.offsetWidth;
+    }
+
+    function updateMission3VoteCount() {
+        currentVote++;
+        if (currentVote > mission3PlayerCount) {
+            showMission3VoteResult();
+        } else {
+            document.getElementById('mission-3-vote-count').textContent = `Голосует игрок # ${currentVote} из ${mission3PlayerCount}`;
+        }
+    }
+
+    function showMission3VoteResult() {
+        document.getElementById('mission-3-vote-screen').style.display = 'none';
+        document.getElementById('mission-3-vote-result-screen').style.display = 'flex';
+        const resultElement = document.getElementById('mission-3-vote-result');
+        if (voteNoCount > 0) {
+            resultElement.textContent = `${voteYesCount} (За) / ${mission3PlayerCount}`;
+            resultElement.style.backgroundColor = 'red';
+        } else {
+            resultElement.textContent = `${voteYesCount} (За) / ${mission3PlayerCount}`;
+            resultElement.style.backgroundColor = 'green';
+        }
+    }
+
+    function endMission3Vote() {
+        currentVote = 1;
+        const voteResult = {
+            id: ++gameVoteCount,
+            name: 'Миссия 3',
+            result: voteNoCount > 0 ? 'Провал' : 'Успех',
+            counts: voteYesCount + '/' + mission3PlayerCount
+        };
+        if (!gameHistory[gameHistory.length - 1].votes) {
+            gameHistory[gameHistory.length - 1].votes = [];
+        }
+        gameHistory[gameHistory.length - 1].votes.push(voteResult);
+        navigator.serviceWorker.controller.postMessage({
+            type: 'SAVE_VOTE_RESULT',
+            vote: voteResult
+        });
+        document.getElementById('mission-3-vote-result-screen').style.display = 'none';
+        document.getElementById('game-screen').style.display = 'flex';
+        document.getElementById('game-screen').style.display = 'flex';
+    }
+
+</script>
+<div class="content" id="game-history" style="display: none;">
+    <h2>История игр</h2>
+    <table border="1" cellpadding="10">
+        <thead>
+        <tr>
+            <th>Порядковый номер</th>
+            <th>Время старта игры</th>
+            <th>Количество игроков</th>
+            <th>Время завершения игры</th>
+        </tr>
+        </thead>
+        <tbody id="history-table-body">
+        <!-- История игр будет загружаться сюда -->
+        </tbody>
+    </table>
+    <button class="small-button" onclick="goBackToMainMenuFromHistory()">Назад</button>
+</div>
+
+<script>
+    function loadGameHistory() {
+        const tableBody = document.getElementById('history-table-body');
+        tableBody.innerHTML = '';
+        gameHistory.slice().reverse().forEach((game) => {
+            const startTimeFormatted = formatDate(game.startTime);
+            const endTimeFormatted = game.endTime ? formatDate(game.endTime) : '-';
+            const row = document.createElement('tr');
+            row.innerHTML = `<td>${game.id}</td><td>${startTimeFormatted}</td><td>${game.playerCount}</td><td>${endTimeFormatted}</td>`;
+            tableBody.appendChild(row);
+        });
+
+    }
+
+    function goBackToMainMenuFromHistory() {
+        document.getElementById('game-history').style.display = 'none';
+        document.getElementById('main-menu').style.display = 'flex';
+    }
+
+    function formatDate(isoString) {
+        const date = new Date(isoString);
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        return `${day}.${month}.${year} ${hours}:${minutes}`;
+    }
+</script>
+
+</body>
+</html>
