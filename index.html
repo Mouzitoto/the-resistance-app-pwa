@@ -233,6 +233,15 @@
         });
     }
 
+    let isFirstLaunched = localStorage.getItem('isFirstLaunched') === null;
+    if (isFirstLaunched) {
+        setTimeout(() => {
+            window.location.reload();
+            localStorage.setItem('isFirstLaunched', 'true');
+        }, 3000);
+    }
+
+
     let playerCount = 5;
     let gameIdCounter = 1;
     let gameHistory = [];
