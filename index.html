@@ -27,11 +27,11 @@
         }
 
         .header {
-            background: #8B0000;
+            background: #8B0000 url('bg-3.png') no-repeat center;
+            background-size: cover;
             color: #fff;
             font-size: 24px;
             padding: 10px;
-            border-bottom: 3px solid #FF0000;
             text-transform: uppercase;
             position: fixed;
             top: 0;
@@ -40,6 +40,7 @@
             z-index: 1000;
             box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.5);
         }
+
 
         .content {
             display: flex;
@@ -54,11 +55,11 @@
             font-size: 20px;
             padding: 15px 30px;
             margin: 20px;
-            border: 2px solid #FF0000;
+            border: 2px solid #a30f14;
             cursor: pointer;
             text-transform: uppercase;
             font-family: 'Russo One', sans-serif;
-            background-color: #333333;
+            background-color: #323232;
             color: #fff;
             transition: transform 0.1s ease-in-out, background-color 0.1s ease-in-out;
         }
@@ -168,6 +169,8 @@
     <h2>Игра с <span id="final-player-count"></span> игроками</h2>
     <button class="game-button" onclick="goToTeamVote()">Голосование за команду</button>
     <button class="game-button" onclick="goToMissionVote3()">Голосовать за миссию 3</button>
+    <button class="game-button" onclick="goToMissionVote4()">Голосовать за миссию 4</button>
+    <button class="game-button" onclick="goToMissionVote5()">Голосовать за миссию 5</button>
     <button class="game-button" onclick="goToVoteHistory()">История голосований</button>
     <button class="game-button" onclick="endGame()">Завершить игру</button>
 </div>
@@ -194,10 +197,42 @@
     </div>
 </div>
 
+<div class="content" id="mission-4-vote-screen" style="display: none;">
+    <h2>Голосование за миссию 4</h2>
+    <div id="mission-4-vote-count" class="vote-info">1 из <span id="mission-4-total-players"></span></div>
+    <br>
+    <div style="display: flex; justify-content: center; gap: 20px;">
+        <button class="vote-button" style="background-color: green; width: 150px;" onclick="voteYesMission4()">За</button>
+        <button class="vote-button" style="background-color: red; width: 150px;" onclick="voteNoMission4()">Против</button>
+    </div>
+</div>
+
+<div class="content" id="mission-5-vote-screen" style="display: none;">
+    <h2>Голосование за миссию 3</h2>
+    <div id="mission-5-vote-count" class="vote-info">1 из <span id="mission-5-total-players"></span></div>
+    <br>
+    <div style="display: flex; justify-content: center; gap: 20px;">
+        <button class="vote-button" style="background-color: green; width: 150px;" onclick="voteYesMission5()">За</button>
+        <button class="vote-button" style="background-color: red; width: 150px;" onclick="voteNoMission5()">Против</button>
+    </div>
+</div>
+
 <div class="content" id="mission-3-vote-result-screen" style="display: none;">
     <h2>Результаты голосования за миссию 3</h2>
     <div id="mission-3-vote-result" class="vote-result"></div>
     <button class="game-button" onclick="endMission3Vote()">Завершить голосование</button>
+</div>
+
+<div class="content" id="mission-4-vote-result-screen" style="display: none;">
+    <h2>Результаты голосования за миссию 4</h2>
+    <div id="mission-4-vote-result" class="vote-result"></div>
+    <button class="game-button" onclick="endMission4Vote()">Завершить голосование</button>
+</div>
+
+<div class="content" id="mission-5-vote-result-screen" style="display: none;">
+    <h2>Результаты голосования за миссию 5</h2>
+    <div id="mission-5-vote-result" class="vote-result"></div>
+    <button class="game-button" onclick="endMission5Vote()">Завершить голосование</button>
 </div>
 
 <div class="content" id="vote-result-screen" style="display: none;">
@@ -250,6 +285,8 @@
     let currentVote = 1;
     let gameVoteCount = 0;
     let mission3PlayerCount = 3;
+    let mission4PlayerCount = 4;
+    let mission5PlayerCount = 5;
 
 
     function goToPlayerSelection() {
@@ -336,6 +373,38 @@
         const voteCountElement = document.getElementById('mission-3-vote-count');
         if (voteCountElement) {
             voteCountElement.textContent = `Голосует игрок # ${currentVote} из ${mission3PlayerCount}`;
+        }
+    }
+
+    function goToMissionVote4() {
+        document.getElementById('game-screen').style.display = 'none';
+        document.getElementById('mission-4-vote-screen').style.display = 'flex';
+        currentVote = 1;
+        voteYesCount = 0;
+        voteNoCount = 0;
+        const totalPlayersElement = document.getElementById('mission-4-total-players');
+        if (totalPlayersElement) {
+            totalPlayersElement.textContent = mission4PlayerCount;
+        }
+        const voteCountElement = document.getElementById('mission-4-vote-count');
+        if (voteCountElement) {
+            voteCountElement.textContent = `Голосует игрок # ${currentVote} из ${mission4PlayerCount}`;
+        }
+    }
+
+    function goToMissionVote5() {
+        document.getElementById('game-screen').style.display = 'none';
+        document.getElementById('mission-5-vote-screen').style.display = 'flex';
+        currentVote = 1;
+        voteYesCount = 0;
+        voteNoCount = 0;
+        const totalPlayersElement = document.getElementById('mission-5-total-players');
+        if (totalPlayersElement) {
+            totalPlayersElement.textContent = mission5PlayerCount;
+        }
+        const voteCountElement = document.getElementById('mission-5-vote-count');
+        if (voteCountElement) {
+            voteCountElement.textContent = `Голосует игрок # ${currentVote} из ${mission5PlayerCount}`;
         }
     }
 
@@ -462,6 +531,50 @@
         void voteScreen.offsetWidth;
     }
 
+    function voteYesMission4() {
+        const voteScreen = document.getElementById('mission-4-vote-screen');
+        voteScreen.classList.add('swipe-up');
+        setTimeout(() => {
+            voteScreen.classList.remove('swipe-up');
+            voteYesCount++;
+            updateMission4VoteCount();
+        }, 500);
+        void voteScreen.offsetWidth;
+    }
+
+    function voteNoMission4() {
+        const voteScreen = document.getElementById('mission-4-vote-screen');
+        voteScreen.classList.add('swipe-up');
+        setTimeout(() => {
+            voteScreen.classList.remove('swipe-up');
+            voteNoCount++;
+            updateMission4VoteCount();
+        }, 500);
+        void voteScreen.offsetWidth;
+    }
+
+    function voteYesMission5() {
+        const voteScreen = document.getElementById('mission-5-vote-screen');
+        voteScreen.classList.add('swipe-up');
+        setTimeout(() => {
+            voteScreen.classList.remove('swipe-up');
+            voteYesCount++;
+            updateMission5VoteCount();
+        }, 500);
+        void voteScreen.offsetWidth;
+    }
+
+    function voteNoMission5() {
+        const voteScreen = document.getElementById('mission-5-vote-screen');
+        voteScreen.classList.add('swipe-up');
+        setTimeout(() => {
+            voteScreen.classList.remove('swipe-up');
+            voteNoCount++;
+            updateMission5VoteCount();
+        }, 500);
+        void voteScreen.offsetWidth;
+    }
+
     function updateMission3VoteCount() {
         currentVote++;
         if (currentVote > mission3PlayerCount) {
@@ -501,6 +614,92 @@
             vote: voteResult
         });
         document.getElementById('mission-3-vote-result-screen').style.display = 'none';
+        document.getElementById('game-screen').style.display = 'flex';
+        document.getElementById('game-screen').style.display = 'flex';
+    }
+
+    function updateMission4VoteCount() {
+        currentVote++;
+        if (currentVote > mission4PlayerCount) {
+            showMission4VoteResult();
+        } else {
+            document.getElementById('mission-4-vote-count').textContent = `Голосует игрок # ${currentVote} из ${mission4PlayerCount}`;
+        }
+    }
+
+    function showMission4VoteResult() {
+        document.getElementById('mission-4-vote-screen').style.display = 'none';
+        document.getElementById('mission-4-vote-result-screen').style.display = 'flex';
+        const resultElement = document.getElementById('mission-4-vote-result');
+        if (voteNoCount > 0) {
+            resultElement.textContent = `${voteYesCount} (За) / ${mission4PlayerCount}`;
+            resultElement.style.backgroundColor = 'red';
+        } else {
+            resultElement.textContent = `${voteYesCount} (За) / ${mission4PlayerCount}`;
+            resultElement.style.backgroundColor = 'green';
+        }
+    }
+
+    function endMission4Vote() {
+        currentVote = 1;
+        const voteResult = {
+            id: ++gameVoteCount,
+            name: 'Миссия 4',
+            result: voteNoCount > 0 ? 'Провал' : 'Успех',
+            counts: voteYesCount + '/' + mission4PlayerCount
+        };
+        if (!gameHistory[gameHistory.length - 1].votes) {
+            gameHistory[gameHistory.length - 1].votes = [];
+        }
+        gameHistory[gameHistory.length - 1].votes.push(voteResult);
+        navigator.serviceWorker.controller.postMessage({
+            type: 'SAVE_VOTE_RESULT',
+            vote: voteResult
+        });
+        document.getElementById('mission-4-vote-result-screen').style.display = 'none';
+        document.getElementById('game-screen').style.display = 'flex';
+        document.getElementById('game-screen').style.display = 'flex';
+    }
+
+    function updateMission5VoteCount() {
+        currentVote++;
+        if (currentVote > mission5PlayerCount) {
+            showMission5VoteResult();
+        } else {
+            document.getElementById('mission-5-vote-count').textContent = `Голосует игрок # ${currentVote} из ${mission5PlayerCount}`;
+        }
+    }
+
+    function showMission5VoteResult() {
+        document.getElementById('mission-5-vote-screen').style.display = 'none';
+        document.getElementById('mission-5-vote-result-screen').style.display = 'flex';
+        const resultElement = document.getElementById('mission-5-vote-result');
+        if (voteNoCount > 0) {
+            resultElement.textContent = `${voteYesCount} (За) / ${mission5PlayerCount}`;
+            resultElement.style.backgroundColor = 'red';
+        } else {
+            resultElement.textContent = `${voteYesCount} (За) / ${mission5PlayerCount}`;
+            resultElement.style.backgroundColor = 'green';
+        }
+    }
+
+    function endMission5Vote() {
+        currentVote = 1;
+        const voteResult = {
+            id: ++gameVoteCount,
+            name: 'Миссия 5',
+            result: voteNoCount > 0 ? 'Провал' : 'Успех',
+            counts: voteYesCount + '/' + mission5PlayerCount
+        };
+        if (!gameHistory[gameHistory.length - 1].votes) {
+            gameHistory[gameHistory.length - 1].votes = [];
+        }
+        gameHistory[gameHistory.length - 1].votes.push(voteResult);
+        navigator.serviceWorker.controller.postMessage({
+            type: 'SAVE_VOTE_RESULT',
+            vote: voteResult
+        });
+        document.getElementById('mission-5-vote-result-screen').style.display = 'none';
         document.getElementById('game-screen').style.display = 'flex';
         document.getElementById('game-screen').style.display = 'flex';
     }
